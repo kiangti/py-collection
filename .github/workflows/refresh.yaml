@@ -5,10 +5,6 @@ on:
     - cron: "0 */2 * * *"
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.repository }}
-  cancel-in-progress: true
-
 env:
   # time zone
   TZ: Asia/Shanghai
@@ -65,7 +61,7 @@ jobs:
           fi
 
       - name: Refresh
-        run: python -u subscribe/collect.py --all --both --refresh --overwrite --skip
+        run: python -u subscribe/collect.py --both --refresh --overwrite --skip
 
       - name: Timestamp
         run: date
