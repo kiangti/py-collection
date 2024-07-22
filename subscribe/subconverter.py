@@ -13,6 +13,44 @@ PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 FILE_LOCK = Lock()
 
+CONVERT_TARGETS = [
+    "clash",
+    "v2ray",
+    "singbox",
+    "mixed",
+    "clashr",
+    "quan",
+    "quanx",
+    "loon",
+    "ss",
+    "sssub",
+    "ssd",
+    "ssr",
+    "surfboard",
+    "surge",
+    "surge&ver=2",
+    "surge&ver=3",
+]
+
+
+def get_filename(target: str) -> str:
+    target = utils.trim(target).lower()
+
+    if target not in set(CONVERT_TARGETS):
+        return ""
+
+    if "clash" in target:
+        extension = "yaml"
+    elif target == "singbox":
+        extension = "json"
+    elif target == "v2ray" or target == "mixed":
+        extension = "txt"
+    else:
+        extension = "conf"
+
+    name = target.replace("&", "-").replace("=", "-")
+    return f"{name}.{extension}"
+
 
 def generate_conf(
     filepath: str,
@@ -32,12 +70,27 @@ def generate_conf(
         name = f"[{name.strip()}]"
         path = f"path={dest.strip()}"
         url = f"url={source.strip()}"
-        target = f"target={target.strip()}"
+        ver = ""
+
+        if "&" not in target:
+            target = f"target={target.strip()}"
+        else:
+            words = target.split("&", maxsplit=1)
+            target = f"target={words[0].strip()}"
+            array = words[1].strip().split("=", maxsplit=1)
+            if len(array) == 2 and utils.is_number(array[1]):
+                ver = f"ver={array[1]}"
+
         remove_rules = f"expand={str(not list_only).lower()}"
         lines = [name, path, target, url, remove_rules]
 
+        if ver:
+            lines.append(ver)
+
         if list_only:
             lines.append("list=true")
+        else:
+            lines.append("list=false")
 
         if emoji:
             lines.extend(["emoji=true", "add_emoji=true"])
