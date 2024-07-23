@@ -28,8 +28,8 @@ CONVERT_TARGETS = [
     "ssr",
     "surfboard",
     "surge",
-    "surge&ver=2",
-    "surge&ver=3",
+    # "surge&ver=2",
+    # "surge&ver=3",
 ]
 
 
@@ -70,22 +70,27 @@ def generate_conf(
         name = f"[{name.strip()}]"
         path = f"path={dest.strip()}"
         url = f"url={source.strip()}"
-        ver = ""
+        goal, version = "", None
 
         if "&" not in target:
-            target = f"target={target.strip()}"
+            goal = target.strip()
         else:
             words = target.split("&", maxsplit=1)
-            target = f"target={words[0].strip()}"
+            goal = words[0].strip()
+
             array = words[1].strip().split("=", maxsplit=1)
             if len(array) == 2 and utils.is_number(array[1]):
-                ver = f"ver={array[1]}"
+                version = int(array[1])
+
+        if goal == "surge":
+            version = max(4, version or 5)
 
         remove_rules = f"expand={str(not list_only).lower()}"
-        lines = [name, path, target, url, remove_rules]
+        lines = [name, path, url, remove_rules]
+        lines.append(f"target={goal}")
 
-        if ver:
-            lines.append(ver)
+        if version is not None:
+            lines.append(f"ver={version}")
 
         if list_only:
             lines.append("list=true")
