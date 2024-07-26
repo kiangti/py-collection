@@ -102,7 +102,7 @@ def multi_thread_crawl(func: typing.Callable, params: list) -> dict:
     return tasks
 
 
-def batch_crawl(engine: str, conf: dict, num_threads: int = 50, display: bool = True) -> list[dict]:
+def batch_crawl(conf: dict, num_threads: int = 50, display: bool = True) -> list[dict]:
     mode, connectable = crawlable()
 
     if not conf or not conf.get("enable", True):
@@ -117,6 +117,7 @@ def batch_crawl(engine: str, conf: dict, num_threads: int = 50, display: bool = 
     datasets, peristedtasks = [], {}
     try:
         persists = conf.get("persist", {})
+        engine = persists.get("engine", "")
         subspushconf = persists.get("subs", {})
         linkspushconf = persists.get("proxies", {})
 
@@ -1596,6 +1597,13 @@ def collect_airport(
             try:
                 request = urllib.request.Request(url=url, headers=utils.DEFAULT_HTTP_HEADERS, method="GET")
                 response = urllib.request.urlopen(request, timeout=6, context=utils.CTX)
+
+                # do not redirect
+                # opener = urllib.request.build_opener(utils.NoRedirect)
+                # response = opener.open(request, timeout=6)
+
+                if not utils.trim(response.geturl()).endswith("/env.js"):
+                    return ""
 
                 content = response.read()
                 try:
